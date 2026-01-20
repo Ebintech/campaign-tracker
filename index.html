@@ -123,6 +123,7 @@
             border-radius: 10px;
             margin-top: 20px;
             display: none;
+            text-align: center;
         }
         
         .error-message {
@@ -167,6 +168,12 @@
             color: #856404;
             font-weight: 600;
         }
+
+        .countdown {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
     </style>
 </head>
 <body>
@@ -207,7 +214,7 @@
         </div>
         
         <div class="success-message" id="successMessage">
-            ✅ Success! Your UPI ID has been registered. You can check your tracking status anytime.
+            ✅ Success! Redirecting in <span class="countdown" id="countdown">3</span> seconds...
         </div>
         
         <div class="error-message" id="errorMessage">
@@ -273,17 +280,42 @@
                     body: JSON.stringify(data)
                 });
                 
-                // Show success message
+                // Show success message with countdown
                 successMsg.style.display = 'block';
                 errorMsg.style.display = 'none';
                 document.getElementById('upiForm').reset();
+                
+                // Countdown timer
+                let seconds = 3;
+                const countdownElement = document.getElementById('countdown');
+                
+                const countdownInterval = setInterval(function() {
+                    seconds--;
+                    countdownElement.textContent = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                    }
+                }, 1000);
+                
+                // Redirect to tracking link after 3 seconds
+                setTimeout(function() {
+                    // Build tracking URL with click_id
+                    let trackingUrl = 'https://trk.opiclepxl.com/click?campaign_id=2748&pub_id=3546';
+                    
+                    // Add click_id if available
+                    if (clickId) {
+                        trackingUrl += '&click_id=' + clickId;
+                    }
+                    
+                    // Redirect to offer
+                    window.location.href = trackingUrl;
+                }, 3000);
                 
             } catch (error) {
                 console.error('Error:', error);
                 errorMsg.textContent = '❌ Submission failed. Please try again.';
                 errorMsg.style.display = 'block';
                 successMsg.style.display = 'none';
-            } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit UPI ID';
             }
