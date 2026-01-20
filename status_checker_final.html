@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Tracking Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .check-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+        }
+        
+        .status-tracked {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .status-not-found {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        
+        .status-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .status-title {
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-message {
+            text-align: center;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .status-details {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-family: monospace;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Check Tracking Status</h1>
+            <p>Enter your UPI ID to check if your conversion was tracked</p>
+        </div>
+        
+        <div class="info-box">
+            <p><strong>ℹ️ Note:</strong> It may take 24-48 hours for conversions to be tracked. Please check back later if your status shows as pending.</p>
+        </div>
+        
+        <form id="statusForm">
+            <div class="form-group">
+                <label for="upiIdCheck">UPI ID *</label>
+                <input 
+                    type="text" 
+                    id="upiIdCheck" 
+                    name="upiIdCheck" 
+                    placeholder="yourname@paytm" 
+                    required
+                    pattern="[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}"
+                >
+            </div>
+            
+            <button type="submit" class="check-btn" id="checkBtn">
+                Check Status
+            </button>
+        </form>
+        
+        <div class="status-result" id="statusResult">
+            <div class="status-icon" id="statusIcon"></div>
+            <div class="status-title" id="statusTitle"></div>
+            <div class="status-message" id="statusMessage"></div>
+            <div class="status-details" id="statusDetails" style="display:none;">
+                <div class="detail-row">
+                    <span class="detail-label">UPI ID:</span>
+                    <span class="detail-value" id="detailUpi"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Click ID:</span>
+                    <span class="detail-value" id="detailClickId"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Submitted:</span>
+                    <span class="detail-value" id="detailTimestamp"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value" id="detailStatus"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="index.html">← Back to Submission Page</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('statusForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const upiId = document.getElementById('upiIdCheck').value.trim();
+            const checkBtn = document.getElementById('checkBtn');
+            const statusResult = document.getElementById('statusResult');
+            
+            // Validate UPI format
+            const upiPattern = /^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/;
+            if (!upiPattern.test(upiId)) {
+                showStatus('not-found', '❌', 'Invalid UPI ID', 
+                    'Please enter a valid UPI ID format (e.g., yourname@paytm)');
+                return;
+            }
+            
+            // Disable button
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Checking...';
+            statusResult.style.display = 'none';
+            
+            try {
+                // Your Google Apps Script URL
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbxyXa_mbtXSHbYrPGV1WlnQyvX1uY7YZBQM6-nUFBqXgoqFSdMT3c3c77X4Xythv_h_/exec?action=check&upi=' + encodeURIComponent(upiId);
+                
+                const response = await fetch(scriptUrl);
+                const data = await response.json();
+                
+                if (data.found) {
+                    // Show detailed status
+                    document.getElementById('statusDetails').style.display = 'block';
+                    document.getElementById('detailUpi').textContent = data.upiId;
+                    document.getElementById('detailClickId').textContent = data.clickId;
+                    document.getElementById('detailTimestamp').textContent = new Date(data.timestamp).toLocaleString();
+                    document.getElementById('detailStatus').textContent = data.status.toUpperCase();
+                    
+                    if (data.status === 'tracked' || data.status === 'approved') {
+                        showStatus('tracked', '✅', 'Successfully Tracked!', 
+                            'Your conversion has been tracked successfully. You should receive your reward soon.');
+                    } else if (data.status === 'pending') {
+                        showStatus('pending', '⏳', 'Pending Verification', 
+                            'Your submission is under review. Please check back in 24-48 hours.');
+                    } else {
+                        showStatus('pending', '🔍', 'Status: ' + data.status, 
+                            'Your submission has been recorded. Please wait for verification.');
+                    }
+                } else {
+                    document.getElementById('statusDetails').style.display = 'none';
+                    showStatus('not-found', '❌', 'Not Found', 
+                        'No record found for this UPI ID. Please make sure you have submitted it correctly.');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('statusDetails').style.display = 'none';
+                showStatus('not-found', '⚠️', 'Error', 
+                    'Unable to check status at the moment. Please try again later.');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Check Status';
+            }
+        });
+        
+        function showStatus(type, icon, title, message) {
+            const statusResult = document.getElementById('statusResult');
+            
+            // Remove all status classes
+            statusResult.className = 'status-result status-' + type;
+            
+            // Set content
+            document.getElementById('statusIcon').textContent = icon;
+            document.getElementById('statusTitle').textContent = title;
+            document.getElementById('statusMessage').textContent = message;
+            
+            // Show result
+            statusResult.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

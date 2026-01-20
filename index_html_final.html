@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Your UPI - Campaign Tracking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .status-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .status-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .click-id-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        #clickIdDisplay {
+            font-family: monospace;
+            color: #856404;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>₹250 Campaign</h1>
+            <p>Submit your UPI ID to participate</p>
+        </div>
+        
+        <div class="click-id-info" id="clickIdSection" style="display:none;">
+            ✓ Tracking ID: <span id="clickIdDisplay"></span>
+        </div>
+        
+        <form id="upiForm">
+            <div class="form-group">
+                <label for="upiId">UPI ID *</label>
+                <input 
+                    type="text" 
+                    id="upiId" 
+                    name="upiId" 
+                    placeholder="yourname@paytm" 
+                    required
+                    pattern="[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}"
+                >
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit UPI ID
+            </button>
+        </form>
+        
+        <div class="info-box">
+            <p><strong>📋 Instructions:</strong></p>
+            <p>1. Enter your UPI ID below</p>
+            <p>2. Submit the form</p>
+            <p>3. Complete the required action</p>
+            <p>4. Check your tracking status after install</p>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            ✅ Success! Your UPI ID has been registered. You can check your tracking status anytime.
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            ❌ Something went wrong. Please try again.
+        </div>
+        
+        <div class="status-link">
+            <a href="status-checker.html">📊 Check Tracking Status</a>
+        </div>
+    </div>
+    
+    <script>
+        // Get click_id from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const clickId = urlParams.get('click_id');
+        
+        // Display click_id if available
+        if (clickId) {
+            document.getElementById('clickIdSection').style.display = 'block';
+            document.getElementById('clickIdDisplay').textContent = clickId;
+        }
+        
+        // Form submission
+        document.getElementById('upiForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const upiId = document.getElementById('upiId').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            // Validate UPI format
+            const upiPattern = /^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/;
+            if (!upiPattern.test(upiId)) {
+                errorMsg.textContent = '❌ Please enter a valid UPI ID (e.g., yourname@paytm)';
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+                return;
+            }
+            
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                // Prepare data
+                const data = {
+                    upiId: upiId,
+                    clickId: clickId || 'NO_CLICK_ID',
+                    timestamp: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                // Your Google Apps Script URL
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbxyXa_mbtXSHbYrPGV1WlnQyvX1uY7YZBQM6-nUFBqXgoqFSdMT3c3c77X4Xythv_h_/exec';
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                // Show success message
+                successMsg.style.display = 'block';
+                errorMsg.style.display = 'none';
+                document.getElementById('upiForm').reset();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.textContent = '❌ Submission failed. Please try again.';
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit UPI ID';
+            }
+        });
+    </script>
+</body>
+</html>
