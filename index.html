@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Your UPI - Campaign Tracking</title>
+    <title>₹250 Campaign - Submit Your UPI</title>
     <style>
         * {
             margin: 0;
@@ -115,17 +115,6 @@
             margin-bottom: 0;
         }
         
-        .success-message {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-            text-align: center;
-        }
-        
         .error-message {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
@@ -168,12 +157,6 @@
             color: #856404;
             font-weight: 600;
         }
-
-        .countdown {
-            font-size: 24px;
-            font-weight: bold;
-            color: #28a745;
-        }
     </style>
 </head>
 <body>
@@ -207,14 +190,10 @@
         
         <div class="info-box">
             <p><strong>📋 Instructions:</strong></p>
-            <p>1. Enter your UPI ID below</p>
+            <p>1. Enter your UPI ID above</p>
             <p>2. Submit the form</p>
             <p>3. Complete the required action</p>
             <p>4. Check your tracking status after install</p>
-        </div>
-        
-        <div class="success-message" id="successMessage">
-            ✅ Success! Redirecting in <span class="countdown" id="countdown">3</span> seconds...
         </div>
         
         <div class="error-message" id="errorMessage">
@@ -237,13 +216,19 @@
             document.getElementById('clickIdDisplay').textContent = clickId;
         }
         
+        // Function to generate unique click ID
+        function generateClickId() {
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(2, 9);
+            return 'EB' + timestamp + random.toUpperCase();
+        }
+        
         // Form submission
         document.getElementById('upiForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const upiId = document.getElementById('upiId').value.trim();
             const submitBtn = document.getElementById('submitBtn');
-            const successMsg = document.getElementById('successMessage');
             const errorMsg = document.getElementById('errorMessage');
             
             // Validate UPI format
@@ -251,19 +236,22 @@
             if (!upiPattern.test(upiId)) {
                 errorMsg.textContent = '❌ Please enter a valid UPI ID (e.g., yourname@paytm)';
                 errorMsg.style.display = 'block';
-                successMsg.style.display = 'none';
                 return;
             }
             
             // Disable button
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
+            submitBtn.textContent = 'Processing...';
+            errorMsg.style.display = 'none';
             
             try {
+                // Generate unique click ID if not present in URL
+                const uniqueClickId = clickId || generateClickId();
+                
                 // Prepare data
                 const data = {
                     upiId: upiId,
-                    clickId: clickId || 'NO_CLICK_ID',
+                    clickId: uniqueClickId,
                     timestamp: new Date().toISOString(),
                     status: 'pending'
                 };
@@ -271,7 +259,8 @@
                 // Your Google Apps Script URL
                 const scriptUrl = 'https://script.google.com/macros/s/AKfycbz-yOC6pLKyNBy0yizLttYPS-k6yHscn_mFYKYZnYZgMwcnhKEtZxscc_Z_9VzgXyMx/exec';
                 
-                const response = await fetch(scriptUrl, {
+                // Save to Google Sheets
+                await fetch(scriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
@@ -280,42 +269,18 @@
                     body: JSON.stringify(data)
                 });
                 
-                // Show success message with countdown
-                successMsg.style.display = 'block';
-                errorMsg.style.display = 'none';
-                document.getElementById('upiForm').reset();
+                // Build tracking URL with source parameter (no timer, instant redirect)
+                const trackingUrl = 'https://trk.opiclepxl.com/click?campaign_id=2748&pub_id=3546&source=' + uniqueClickId;
                 
-                // Countdown timer
-                let seconds = 3;
-                const countdownElement = document.getElementById('countdown');
+                console.log('Redirecting to:', trackingUrl);
                 
-                const countdownInterval = setInterval(function() {
-                    seconds--;
-                    countdownElement.textContent = seconds;
-                    if (seconds <= 0) {
-                        clearInterval(countdownInterval);
-                    }
-                }, 1000);
-                
-                // Redirect to tracking link after 3 seconds
-                setTimeout(function() {
-                    // Build tracking URL with click_id
-                    let trackingUrl = 'https://trk.opiclepxl.com/click?campaign_id=2748&pub_id=3546';
-                    
-                    // Add click_id if available
-                    if (clickId) {
-                        trackingUrl += '&click_id=' + clickId;
-                    }
-                    
-                    // Redirect to offer
-                    window.location.href = trackingUrl;
-                }, 3000);
+                // Instant redirect to panel tracking
+                window.location.href = trackingUrl;
                 
             } catch (error) {
                 console.error('Error:', error);
                 errorMsg.textContent = '❌ Submission failed. Please try again.';
                 errorMsg.style.display = 'block';
-                successMsg.style.display = 'none';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit UPI ID';
             }
