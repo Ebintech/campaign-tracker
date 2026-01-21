@@ -1,240 +1,344 @@
-// Google Apps Script for handling UPI submissions and postback
-// Deploy this as a Web App with "Anyone" access
-
-// Configuration
-const SHEET_ID = '1eQkvxvL1YD-dN-ktKNwUtYWHDSA74wY0kzrBJ7NkRL4';
-const SHEET_NAME = 'Submissions';
-
-// Security Token - Change this to a random secret value!
-const SECURITY_TOKEN = 'EbinTech2026Secret'; // CHANGE THIS!
-
-// Handle GET requests (for status checking AND postback)
-function doGet(e) {
-  try {
-    const params = e.parameter || {};
-    Logger.log('GET request received with params: ' + JSON.stringify(params));
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Tracking Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .check-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+        }
+        
+        .status-tracked {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .status-not-found {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        
+        .status-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .status-title {
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-message {
+            text-align: center;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .status-details {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-family: monospace;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Check Tracking Status</h1>
+            <p>Enter your UPI ID to check if your conversion was tracked</p>
+        </div>
+        
+        <div class="info-box">
+            <p><strong>ℹ️ Note:</strong> It may take 24-48 hours for conversions to be tracked. Please check back later if your status shows as pending.</p>
+        </div>
+        
+        <form id="statusForm">
+            <div class="form-group">
+                <label for="upiIdCheck">UPI ID *</label>
+                <input 
+                    type="text" 
+                    id="upiIdCheck" 
+                    name="upiIdCheck" 
+                    placeholder="yourname@paytm" 
+                    required
+                    pattern="[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}"
+                >
+            </div>
+            
+            <button type="submit" class="check-btn" id="checkBtn">
+                Check Status
+            </button>
+        </form>
+        
+        <div class="status-result" id="statusResult">
+            <div class="status-icon" id="statusIcon"></div>
+            <div class="status-title" id="statusTitle"></div>
+            <div class="status-message" id="statusMessage"></div>
+            <div class="status-details" id="statusDetails" style="display:none;">
+                <div class="detail-row">
+                    <span class="detail-label">UPI ID:</span>
+                    <span class="detail-value" id="detailUpi"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Submitted:</span>
+                    <span class="detail-value" id="detailTimestamp"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value" id="detailStatus"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="index.html">← Back to Submission Page</a>
+        </div>
+    </div>
     
-    const action = params.action;
-    const upiId = params.upi;
-    const clickId = params.click_id;
-    const event = params.event;
-    const status = params.status;
-    const token = params.token;
-    
-    // Check if this is a postback from the panel
-    if (clickId && (event === 'conversion' || status === 'approved')) {
-      Logger.log('Postback request received for click_id: ' + clickId);
-      
-      // Verify security token
-      if (token !== SECURITY_TOKEN) {
-        Logger.log('SECURITY: Invalid or missing token. Received: ' + token);
-        return ContentService.createTextOutput(JSON.stringify({
-          success: false,
-          error: 'Unauthorized: Invalid security token'
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-      
-      Logger.log('SECURITY: Token verified. Processing postback...');
-      return handlePostback({ click_id: clickId, status: 'approved' });
-    }
-    
-    // Check if this is a status check request (no token needed for public status checks)
-    if (action === 'check' && upiId) {
-      Logger.log('Processing status check for UPI: ' + upiId);
-      return checkStatus(upiId);
-    }
-    
-    Logger.log('Invalid request - no valid parameters found');
-    return ContentService.createTextOutput(JSON.stringify({
-      error: 'Invalid request',
-      received: params,
-      help: 'Use ?click_id=XXX&status=approved&token=XXX for postback OR ?action=check&upi=XXX for status'
-    })).setMimeType(ContentService.MimeType.JSON);
-    
-  } catch (error) {
-    Logger.log('Error in doGet: ' + error.toString());
-    return ContentService.createTextOutput(JSON.stringify({
-      error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// Handle POST requests (for submissions)
-function doPost(e) {
-  try {
-    Logger.log('POST request received');
-    const data = JSON.parse(e.postData.contents);
-    Logger.log('POST data: ' + JSON.stringify(data));
-    
-    // Check if this is a postback from the panel
-    if (data.click_id && data.status === 'approved') {
-      // Verify token for POST postback as well
-      if (data.token !== SECURITY_TOKEN) {
-        Logger.log('SECURITY: Invalid or missing token in POST');
-        return ContentService.createTextOutput(JSON.stringify({
-          success: false,
-          error: 'Unauthorized: Invalid security token'
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-      
-      Logger.log('Processing POST postback for click_id: ' + data.click_id);
-      return handlePostback(data);
-    }
-    
-    // Otherwise, it's a new UPI submission (no token needed)
-    Logger.log('Processing new UPI submission');
-    return handleSubmission(data);
-    
-  } catch (error) {
-    Logger.log('Error in doPost: ' + error.toString());
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      error: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// Handle new UPI submission
-function handleSubmission(data) {
-  const sheet = getSheet();
-  const timestamp = new Date();
-  
-  Logger.log('Handling submission for UPI: ' + data.upiId + ', Click ID: ' + data.clickId);
-  
-  // Allow multiple submissions from same UPI (removed duplicate check)
-  // Each submission gets a unique Click ID
-  
-  // Add new row
-  sheet.appendRow([
-    timestamp,
-    data.upiId,
-    data.clickId,
-    data.status || 'pending',
-    '', // Conversion timestamp (empty initially)
-    '' // Notes
-  ]);
-  
-  Logger.log('UPI submission saved successfully');
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    success: true,
-    message: 'UPI ID registered successfully'
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-// Handle postback from campaign panel
-function handlePostback(data) {
-  const sheet = getSheet();
-  const clickId = data.click_id;
-  
-  Logger.log('Looking for click_id: ' + clickId);
-  
-  // Find row with this click_id
-  const rowIndex = findRowByClickId(sheet, clickId);
-  
-  if (rowIndex > 0) {
-    // Update status to 'tracked' and add conversion timestamp
-    sheet.getRange(rowIndex, 4).setValue('tracked'); // Status column
-    sheet.getRange(rowIndex, 5).setValue(new Date()); // Conversion timestamp
-    
-    const upiId = sheet.getRange(rowIndex, 2).getValue();
-    Logger.log('Conversion tracked successfully for UPI: ' + upiId + ', Click ID: ' + clickId);
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      message: 'Conversion tracked',
-      click_id: clickId,
-      upi_id: upiId
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  Logger.log('Click ID not found: ' + clickId);
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    success: false,
-    message: 'Click ID not found',
-    click_id: clickId
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-// Check status of a UPI ID
-function checkStatus(upiId) {
-  const sheet = getSheet();
-  const rowIndex = findRowByUPI(sheet, upiId);
-  
-  if (rowIndex > 0) {
-    const row = sheet.getRange(rowIndex, 1, 1, 6).getValues()[0];
-    
-    Logger.log('Status found for UPI: ' + upiId);
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      found: true,
-      upiId: row[1],
-      clickId: row[2],
-      status: row[3],
-      timestamp: row[0],
-      conversionTime: row[4] || null
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  Logger.log('No data found for UPI: ' + upiId);
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    found: false
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-// Helper: Get or create sheet
-function getSheet() {
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  let sheet = ss.getSheetByName(SHEET_NAME);
-  
-  // Create sheet if it doesn't exist
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow([
-      'Timestamp',
-      'UPI ID',
-      'Click ID',
-      'Status',
-      'Conversion Time',
-      'Notes'
-    ]);
-    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
-  }
-  
-  return sheet;
-}
-
-// Helper: Find row by UPI ID (returns most recent if multiple exist)
-function findRowByUPI(sheet, upiId) {
-  const data = sheet.getDataRange().getValues();
-  let foundRow = -1;
-  
-  // Search from bottom to top to find most recent entry
-  for (let i = data.length - 1; i >= 1; i--) {
-    if (data[i][1] === upiId) {
-      foundRow = i + 1; // Return row number (1-indexed)
-      break; // Stop at first match (most recent)
-    }
-  }
-  
-  return foundRow;
-}
-
-// Helper: Find row by Click ID
-function findRowByClickId(sheet, clickId) {
-  const data = sheet.getDataRange().getValues();
-  Logger.log('Searching through ' + (data.length - 1) + ' rows for click_id: ' + clickId);
-  
-  for (let i = 1; i < data.length; i++) {
-    Logger.log('Row ' + i + ' - Click ID: ' + data[i][2]);
-    if (data[i][2] === clickId) {
-      Logger.log('Match found at row: ' + (i + 1));
-      return i + 1; // Return row number (1-indexed)
-    }
-  }
-  
-  Logger.log('No match found for click_id: ' + clickId);
-  return -1;
-}
+    <script>
+        document.getElementById('statusForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const upiId = document.getElementById('upiIdCheck').value.trim();
+            const checkBtn = document.getElementById('checkBtn');
+            const statusResult = document.getElementById('statusResult');
+            
+            // Validate UPI format
+            const upiPattern = /^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/;
+            if (!upiPattern.test(upiId)) {
+                showStatus('not-found', '❌', 'Invalid UPI ID', 
+                    'Please enter a valid UPI ID format (e.g., yourname@paytm)');
+                return;
+            }
+            
+            // Disable button
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Checking...';
+            statusResult.style.display = 'none';
+            
+            try {
+                // Your Google Apps Script URL
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbz-yOC6pLKyNBy0yizLttYPS-k6yHscn_mFYKYZnYZgMwcnhKEtZxscc_Z_9VzgXyMx/exec?action=check&upi=' + encodeURIComponent(upiId);
+                
+                const response = await fetch(scriptUrl);
+                
+                // Check if response is OK
+                if (!response.ok) {
+                    throw new Error('Server error');
+                }
+                
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error('Invalid response format');
+                }
+                
+                const data = await response.json();
+                
+                // Validate response structure
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid response data');
+                }
+                
+                if (data.found) {
+                    // Show detailed status WITHOUT exposing Click ID
+                    document.getElementById('statusDetails').style.display = 'block';
+                    document.getElementById('detailUpi').textContent = data.upiId;
+                    document.getElementById('detailTimestamp').textContent = new Date(data.timestamp).toLocaleString();
+                    document.getElementById('detailStatus').textContent = data.status.toUpperCase();
+                    
+                    if (data.status === 'tracked' || data.status === 'approved') {
+                        showStatus('tracked', '✅', 'Successfully Tracked!', 
+                            'Your conversion has been tracked successfully. You should receive your reward soon.');
+                    } else if (data.status === 'pending') {
+                        showStatus('pending', '⏳', 'Pending Verification', 
+                            'Your submission is under review. Please check back in 24-48 hours.');
+                    } else {
+                        showStatus('pending', '🔍', 'Status: ' + data.status, 
+                            'Your submission has been recorded. Please wait for verification.');
+                    }
+                } else {
+                    document.getElementById('statusDetails').style.display = 'none';
+                    showStatus('not-found', '❌', 'Not Found', 
+                        'No record found for this UPI ID. Please make sure you have submitted it correctly.');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('statusDetails').style.display = 'none';
+                showStatus('not-found', '⚠️', 'Error', 
+                    'Unable to check status at the moment. Please try again later.');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Check Status';
+            }
+        });
+        
+        function showStatus(type, icon, title, message) {
+            const statusResult = document.getElementById('statusResult');
+            
+            // Remove all status classes
+            statusResult.className = 'status-result status-' + type;
+            
+            // Set content
+            document.getElementById('statusIcon').textContent = icon;
+            document.getElementById('statusTitle').textContent = title;
+            document.getElementById('statusMessage').textContent = message;
+            
+            // Show result
+            statusResult.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
