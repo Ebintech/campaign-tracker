@@ -232,10 +232,6 @@
                     <span class="detail-value" id="detailUpi"></span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Click ID:</span>
-                    <span class="detail-value" id="detailClickId"></span>
-                </div>
-                <div class="detail-row">
                     <span class="detail-label">Submitted:</span>
                     <span class="detail-value" id="detailTimestamp"></span>
                 </div>
@@ -280,10 +276,9 @@
                 const data = await response.json();
                 
                 if (data.found) {
-                    // Show detailed status
+                    // Show detailed status WITHOUT exposing Click ID
                     document.getElementById('statusDetails').style.display = 'block';
                     document.getElementById('detailUpi').textContent = data.upiId;
-                    document.getElementById('detailClickId').textContent = data.clickId;
                     document.getElementById('detailTimestamp').textContent = new Date(data.timestamp).toLocaleString();
                     document.getElementById('detailStatus').textContent = data.status.toUpperCase();
                     
