@@ -300,10 +300,10 @@
                     
                     if (data.status === 'tracked' || data.status === 'approved') {
                         showStatus('tracked', '✅', 'Successfully Tracked!', 
-                            'Your conversion has been tracked successfully. You should receive your reward soon.');
+                            'Your conversion has been tracked successfully. Complete a Trade to receive your reward.');
                     } else if (data.status === 'pending') {
                         showStatus('pending', '⏳', 'Pending Verification', 
-                            'Your submission is under review. Please check back in 24-48 hours.');
+                            'Your submission is under review. Please check back after 10 Minute.');
                     } else {
                         showStatus('pending', '🔍', 'Status: ' + data.status, 
                             'Your submission has been recorded. Please wait for verification.');
